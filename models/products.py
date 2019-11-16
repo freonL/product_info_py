@@ -13,4 +13,15 @@ class Products(Document):
         self.category = category
         self.price = price
         self.pic_url = pic_url
-        
+
+    @classmethod
+    def from_json(cls, data ) -> 'Products':
+        for dt in data:
+            print(dt)
+
+        return cls(
+            title=data['title'],
+            category=data['category'],
+            price=float(data['price']),
+            pic_url=data['pic_url']
+        )
