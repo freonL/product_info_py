@@ -1,44 +1,44 @@
 import os
 from flask import Flask, Response, jsonify, request
-from flask_mongoengine import MongoEngine
+from pymongo import MongoClient
 from dotenv import load_dotenv
 
+from models import JSONEncoder
 load_dotenv()
 app = Flask(__name__)
-app.config['MONGODB_SETTINGS'] = {
-    'db':os.getenv("MONGODB_DB"),
-    'host':os.getenv("MONGODB_URI")
-}
-db = MongoEngine(app)
 
+client = MongoClient(os.getenv("MONGODB_URI"))
+db = client.product_info
 
-from models.products import Products
+from bson.objectid import ObjectId
 
 @app.route('/products',methods = ['GET'])
 def get_list():
-    docs = Products.objects()
-    return jsonify(docs), 200
+    collection = db.products
+    docs = []
+
+    for doc in collection.find():
+        docs.append(doc)
+
+    return Response(JSONEncoder().encode(docs), mimetype='application/json', status=200)
 
 @app.route('/products',methods = ['POST'])
 def create():
     req = request.get_json()
-    doc = Products.from_json(req)
-    doc.save()
-    return jsonify(doc), 200
+
+    return jsonify({}), 200
 
 @app.route('/products/<id>',methods = ['GET'])
 def get_detail(id):
-    doc = Products.objects(id=id)
-    return jsonify(doc), 200
+    doc = db.products.find_one({"_id": ObjectId(id)})
+    return Response(JSONEncoder().encode(doc), mimetype='application/json', status=200)
 
 @app.route('/products/<id>',methods = ['PATCH'])
 def update(id):
-    doc = Products.objects(id=id)
+
     req = request.get_json()
-    print(req)
-    for r in req:
-        print(r,req[r])
-    return jsonify(doc), 200
+
+    return jsonify({}), 200
 
 @app.route('/products/<id>',methods = ['DELETE'])
 def delete(id):
